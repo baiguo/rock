@@ -1,9 +1,9 @@
 package gate
 
 import (
+	"github.com/baiguo/rock/cluster"
 	"github.com/baiguo/rock/log"
 	"github.com/baiguo/rock/network"
-	"golang.org/x/tools/go/ssa/interp/testdata/src/fmt"
 	"net"
 	"reflect"
 	"time"
@@ -91,13 +91,16 @@ type agent struct {
 
 func (a *agent) Run() {
 	for {
-		data, err := a.conn.ReadMsg()
+		data, err := a.conn.ReadMsgToLogicServer()
 		if err != nil {
 			log.Debug("read message: %v", err)
 			break
 		}
 
-		fmt.Print(data)
+		//fmt.Println(data)
+
+		//send clientdata to msgdata;   msgdata send to logicserver
+		cluster.MsgdataChan <- &data
 
 		//if a.gate.Processor != nil {
 		//	msg, err := a.gate.Processor.Unmarshal(data)

@@ -1,15 +1,19 @@
 package cluster
 
 import (
-	"github.com/name5566/leaf/conf"
-	"github.com/name5566/leaf/network"
+	"github.com/baiguo/rock/conf"
+	"github.com/baiguo/rock/network"
 	"math"
+	"math/rand"
 	"time"
 )
 
+type Msgdata []byte
+
 var (
-	server  *network.TCPServer
-	clients []*network.TCPClient
+	server      *network.TCPServer
+	clients     []*network.TCPClient
+	MsgdataChan chan *[]byte
 )
 
 func Init() {
@@ -38,6 +42,26 @@ func Init() {
 		client.Start()
 		clients = append(clients, client)
 	}
+
+	go Run()
+}
+
+func Run() {
+
+	for {
+
+		data, ok := <-MsgdataChan
+		if !ok {
+			continue
+		}
+
+		r := rand.New(rand.NewSource(time.Now().UnixNano()))
+		selftid := r.Intn(len(clients))
+
+		//send data to logic server
+		clients[selftid].WriteMsg(*data)
+	}
+
 }
 
 func Destroy() {
